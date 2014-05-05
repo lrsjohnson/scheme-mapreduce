@@ -3,6 +3,5 @@
 
 ;; Communication among Threads
 (load "conspire")
-(load "try-two-ways")
 
 ':have-fun!

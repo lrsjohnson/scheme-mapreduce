@@ -68,12 +68,45 @@
 
 ;;; Manages communications
 
-;;; Failures?
+;;; Failures / Scheduling
+;;;; - maybe different ways of handling failures / scheduling to
+;;;; increase the performance.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Interpreter Syntax + Experimental Automatic Map-reduce abstraction
 ;;;
-;;; ...
+;;; User-facing interface...
+;;;
+;;; Possibly "analyzing"
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; MapReduce Computation Model:
+;;;
+;;; map: Input is a single (key-type-1  value-type-1)
+;;;      -> List of pairs (key-type-2 value-type-2)
+;;;
+;;; reduce: Input is (key-type-2 (list of value-type-2))
+;;;         -> Output is a list of value-type-2's
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Some sample applications of MapReduce:
+;;;
+;;; [Based on discussion in MapReduce paper by Dean + Ghemawat 2004]
+;;;
+;;; Word Frequency:
+;;;   map: (document-name document-contents) -> list of (word count)
+;;;   reduce: (word (list of count)) to sum of counts
+;;;
+;;; Distributed Grep:
+;;;   map: (document-name doc-contents) -> list of ('unused lines)
+;;;   reduce: identity
+
+;;; Count of URL Access Frequency:
+;;;   map: ('unused 
 
 
 

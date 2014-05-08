@@ -1,0 +1,70 @@
+------------------------
+
+Title:
+MapReduce in Scheme
+
+------------------------
+
+Objectives
+
+tl;dr Explore scheme / 6.945 ideas in a distribtued systems context.
+
+------------------------
+
+What is MapReduce?
+
+------------------------
+
+Types for map/reduce functions
+
+------------------------
+
+Simple examples of map/reduce paradigm
+
+------------------------
+
+[Have programming model, now discuss the actual system...]
+
+MapReduce System:
+Master + Workers, etc.
+
+------------------------
+
+How to implement in Scheme?
+
+Need multitasking + interprocess communication
+
+------------------------
+
+Many options:
+- conspire threads
+- actors
+- multiple processes..
+
+------------------------
+
+Extensions / Failure
+
+Failure
+
+------------------------
+
+Discuss interesting things we found while implementing?
+
+- What are our abstractions that can be swapped out?
+
+- Demo?
+
+- Instrument / stats?
+
+- Extensions?
+
+------------------------
+
+User-facing methods / interface:
+interpreter?
+
+------------------------
+
+Automatic inference / conversion to map/reduce paradigm?
+--- that'd be really cool to at least do something with?

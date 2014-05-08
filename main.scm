@@ -69,8 +69,17 @@
 ;;; Manages communications
 
 ;;; Failures / Scheduling
-;;;; - maybe different ways of handling failures / scheduling to
-;;;; increase the performance.
+;;; - maybe different ways of handling failures / scheduling to
+;;; increase the performance.
+
+
+;;; [Comments from paper:]
+;;; Failure Handling:
+;;;  - Master "pings" each worker periodically. Reset tasks for that
+;;;  worker,
+
+;;; Dealing with multiple executions: Relies on operating system's
+;;; atomic rename oepration.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Interpreter Syntax + Experimental Automatic Map-reduce abstraction

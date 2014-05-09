@@ -109,7 +109,8 @@
     ds2)
    (mrs:print-streaming ds1 'ds1)
    (mrs:print-streaming ds2 'ds2)
-   (mrs:feed-value-list ds-input '(1 2 3 4))
-   (conspire:null-job))
- (with-time-sharing-conspiracy test5)
+   (mrs:feed-value-list ds-input '(1 1 3 5))
+   (mrs:feed-value-list ds-input '(2 2 1 4))
+   (mrs:feed-value-list ds-input '(3 1 0 3)))
+ (mrs:run-computation test5)
 |#

@@ -1,0 +1,11 @@
+(define (mrs:map map-func ds-in ds-out)
+  (define (mm-func emit)
+    (lambda (ds-elt)
+      (emit (map-func (ds-elt-key ds-elt) (ds-elt-value ds-elt)))))
+  (make-distributor mm-func ds-in ds-out 5))
+
+(define (mrs:print-streaming ds-in)
+  (define (mm-func emit)
+    (lambda (ds-elt)
+      (pp `(,(ds-elt-key ds-elt) ,(ds-elt-value ds-elt)))))
+  (make-distributor mm-func ds-in (create-sink-data-set) 1))

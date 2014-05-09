@@ -67,6 +67,7 @@
            (cond ((empty-ds-elt? ds-in-elt)
                   'continue)
                  ((ds-elt-done? ds-in-elt)
+                  ;; TODO: Perhaps handle this specially?
                   (error "Implement me!"))
                  (else
                   (write-to-worker

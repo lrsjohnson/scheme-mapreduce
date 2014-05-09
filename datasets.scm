@@ -1,25 +1,62 @@
-(define-structure mrq-data-set queue lock)
+(define-structure mrq-data-set queue lock writer-count done-count)
 
 (define *empty-ds-elt* (list 'empty-ds-elt))
 
 (define (empty-ds-elt? ds-elt)
   (eq? ds-elt *empty-ds-elt*))
 
+(define *data-sets* '())
+
 (define (create-mrq-data-set)
-  (make-mrq-data-set (create-mr-queue) (conspire:make-lock)))
+  (let ((data-set (make-mrq-data-set
+		   (create-mr-queue)
+		   (conspire:make-lock) 0 0)))
+    (set! *data-sets* (cons data-set *data-sets*))
+    data-set))
+
 (define create-data-set create-mrq-data-set)
+
+(define (flush-input-data-sets)
+  (for-each
+   (lambda (mrq-data-set)
+     (if (= (mrq-data-set-writer-count mrq-data-set) 0)
+	 (ds-add-elt mrq-data-set (create-ds-elt-done))))
+   *data-sets*))
 
 (define ds-get-writer
   (make-generic-operator 1 'ds-get-writer))
 (define ds-get-reader
   (make-generic-operator 1 'ds-get-reader))
+(define ds-add-elt
+  (make-generic-operator 2 'ds-add-elt))
+
+(define (any? x) #t)
+
+(defhandler ds-add-elt
+  (lambda (mrq-data-set val)
+    (let ((lock (mrq-data-set-lock mrq-data-set)))
+      (conspire:acquire-lock lock)
+      (mr-queue-add-elt (mrq-data-set-queue mrq-data-set) val)
+      (conspire:unlock lock)))
+  mrq-data-set? any?)
 
 (defhandler ds-get-writer
   (lambda (mrq-data-set)
+    (set-mrq-data-set-writer-count!
+     mrq-data-set
+     (+ (mrq-data-set-writer-count mrq-data-set) 1))
     (let ((lock (mrq-data-set-lock mrq-data-set)))
       (lambda (val)
         (conspire:acquire-lock lock)
-        (mr-queue-add-elt (mrq-data-set-queue mrq-data-set) val)
+	(if (ds-elt-done? val)
+	    (begin
+	      (set-mrq-data-set-done-count!
+	       mrq-data-set
+	       (+ (mrq-data-set-done-count mrq-data-set) 1))
+	      (if (= (mrq-data-set-writer-count mrq-data-set)
+		     (mrq-data-set-done-count mrq-data-set))
+		  (mr-queue-add-elt (mrq-data-set-queue mrq-data-set) val)))
+	    (mr-queue-add-elt (mrq-data-set-queue mrq-data-set) val))
         (conspire:unlock lock))))
   mrq-data-set?)
 
@@ -54,11 +91,34 @@
  ;-> 2
  (reader)
  ;-> (empty-ds-elt)
-|# 
+
+
+(define ds2 (create-mrq-data-set))
+(define writer (ds-get-writer ds2))
+(define writer2 (ds-get-writer ds2))
+(define reader (ds-get-reader ds2))
+
+(writer 1)
+(writer2 2)
+(writer2 (create-ds-elt-done))
+(reader)
+;-> 1
+(reader)
+;-> 2
+(reader)
+;-> (empty-ds-elt)
+
+(writer (create-ds-elt-done))
+
+(reader)
+;-> [done element]
+|#
 
 
 (define-structure ds-elt key value done)
-(define ds-elt-done? ds-elt-done)
+(define (ds-elt-done? obj)
+  (and (ds-elt? obj)
+       (ds-elt-done obj)))
 
 (define (create-ds-elt key value)
   (make-ds-elt key value #f))

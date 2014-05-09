@@ -33,18 +33,28 @@
    hash-table
    key
    (cons value (hash-table/get hash-table key '()))))
+
 (define (mrs:aggregate ds-in ds-out)
+  (pp 'mrs-aggregate)
   (define (mm-func emit)
+    (pp 'mm-func-aggregator)    
     (let ((data-from-mapper (make-equal-hash-table)))
+      (pp 'made-aggregator)
       (lambda (ds-elt)
+	(pp (list 'aggregate-data ds-elt))
         (if (not (ds-elt-done? ds-elt))
-            (append-date-in-hashtable data-from-mapper key value)
-            (hash-table/for-each
-             data-from-mapper
-             (lambda (key values)
-               (emit (create-ds-elt key values))
-               (emit ds-elt))))))
-    (make-distributor mm-func ds-in ds-out 1)))
+            (append-data-in-hashtable
+	     data-from-mapper
+	     (ds-elt-key ds-elt)
+	     (ds-elt-value ds-elt))
+            (begin (hash-table/for-each
+		    data-from-mapper
+		    (lambda (key values)
+		      (pp (list 'ht-kv key values))
+		      (emit (create-ds-elt key values))
+		      ))
+		   (emit ds-elt))))))
+  (make-distributor mm-func ds-in ds-out 1))
 
 ;;; Reduce
 (define (mrs:reduce reduce-func ds-in ds-out)

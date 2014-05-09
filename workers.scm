@@ -57,26 +57,43 @@
 (define (make-distributor mm-func ds-in ds-out num-workers)
   (let ((workers (make-workers mm-func num-workers))
         (ds-in-reader (ds-get-reader ds-in))
-        (ds-out-writer (ds-get-writer ds-out)))
+        (ds-out-writer (ds-get-writer ds-out))
+	(num-workers-outstanding 0))
     (pp 'make-distributor)
     (conspire:make-thread
      conspire:runnable
      (lambda ()
        (let lp ()
+	 ;;; Check input from data set
          (let ((ds-in-elt (ds-in-reader)))
            (cond ((empty-ds-elt? ds-in-elt)
                   'continue)
                  ((ds-elt-done? ds-in-elt)
-                  ;; TODO: Perhaps handle this specially?
-                  (error "Implement me!"))
+		  (pp (list 'ds-done-elt-into-distributor ds-in-elt))
+		  (set! num-workers-outstanding num-workers)
+		  (vector-for-each (lambda (worker)
+				     (write-to-worker
+				      worker
+				      ds-in-elt))
+				   workers))
                  (else
+		  (pp (list 'ds-elt-into-distributor-1 ds-in-elt))
+		  (pp (list 'ds-elt-into-distributor-2 (ds-elt-value ds-in-elt)))		  		  
                   (write-to-worker
                    (choose-worker ds-in-elt workers)
                    ds-in-elt))))
-         (vector-for-each
-          (lambda (worker)
-            (let ((worker-output (read-from-worker worker)))
-              (if (not (empty-pipe-val? worker-output))
-                  (ds-out-writer worker-output))))
-          workers)
-         (lp))))))
+              	 ;;; Check results from workers
+	 (vector-for-each
+	  (lambda (worker)
+	    (let ((worker-output (read-from-worker worker)))
+	      (cond ((empty-pipe-val? worker-output)
+		     'nothing-to-do)
+		    ((ds-elt-done? worker-output)
+		     (set! num-workers-outstanding
+			   (- num-workers-outstanding 1))
+		     (if (= num-workers-outstanding 0)
+			 (ds-out-writer worker-output)))
+		    (else
+		     (ds-out-writer worker-output)))))
+	  workers)
+	 (lp))))))

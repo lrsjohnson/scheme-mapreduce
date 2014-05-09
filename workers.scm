@@ -62,7 +62,7 @@
            (let ((ds-in-elt (ds-in-reader)))
              (cond ((empty-ds-elt? ds-in-elt)
                     'continue)
-                   ((done-ds-elt? ds-in-elt)
+                   ((ds-elt-done? ds-in-elt)
                     (error "Implement me!"))
                    (else
                     (write-to-worker

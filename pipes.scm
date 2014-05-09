@@ -1,28 +1,19 @@
-(define thread-execute
-  (make-generic-operator 1 'thread-execute default-thread-execute))
-
 ;; Non-blocking
 (define get-pipe-reader
-  (make-generic-operator 1 'get-pipe-reader default-get-pipe-reader))
+  (make-generic-operator 1 'get-pipe-reader))
 
 (define get-pipe-writer
-  (make-generic-operator 1 'get-pipe-writer default-get-pipe-writer))
+  (make-generic-operator 1 'get-pipe-writer))
 
 (define *empty-pipe-val* (list 'empty-pipe-val))
 (define (empty-pipe-val? retval)
   (eq? retval *empty-pipe-val*))
 
 
-;;; Conspire threaded implementation
-(define *conspire-threads* #t)
-
-(define (conspire-threads?)
-  *conspire-threads*)
-
 (define (make-conspire-pipe)
   (list 'conspire-pipe (queue:make) (conspire:make-lock)))
 
-(define (is-conspire-pipe? pipe)
+(define (conspire-pipe? pipe)
   (eq? (car pipe) 'conspire-pipe))
 
 (define (conspire-pipe-get-queue pipe)
@@ -51,7 +42,7 @@
                       (queue:delete-from-queue! pipe-queue first)
                       (conspire:unlock pipe-lock)
                       first))))))))
-  is-conspire-pipe?)
+  conspire-pipe?)
 
 (defhandler get-pipe-writer
   (lambda (pipe)
@@ -61,15 +52,4 @@
         (conspire:acquire-lock pipe-lock)
         (queue:add-to-end! pipe-queue value)
         (conspire:unlock pipe-lock))))
-  is-conspire-pipe?)
-
-(defhandler thread-execute
-  (lambda (thunk)
-    (conspire:make-thread conspire:runnable thunk))
-  conspire-threads?)
-
-;;; Test conspire implementation
-#|
-(define (parallel-exec)
-  ... ;; Complete test case
-|#
+  conspire-pipe?)

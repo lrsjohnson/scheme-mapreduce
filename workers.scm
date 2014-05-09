@@ -8,13 +8,16 @@
         (input-pipe (make-conspire-pipe)))
     (let ((output-writer (get-pipe-writer output-pipe))
           (input-reader (get-pipe-reader input-pipe)))
+      (pp 'make-worker)
       (conspire:make-thread
        conspire:runnable
        (lambda ()
          (let ((worker-func (mm-func output-writer)))
            (let lp ()
-               (worker-func (input-reader))
-             (lp))))))
+             (let ((input-val (input-reader)))
+               (if (not (empty-pipe-val? input-val))
+                   (worker-func input-val))
+               (lp)))))))
     (list (get-pipe-reader output-pipe)
           (get-pipe-writer input-pipe))))
 
@@ -27,7 +30,7 @@
 ;;; num-workers containing pairs of input and output pipes
 ;;; for each worker
 (define (make-workers mm-func num-workers)
-  (let ((workers (make-vector (num-workers))))
+  (let ((workers (make-vector num-workers)))
     (let lp ((i 0))
       (vector-set! workers i (make-worker mm-func))
       (set! i (+ i 1))
@@ -52,22 +55,24 @@
 ;;; Loops over input ds and worker outputs and passes
 ;;; values to appropriate destinations (using black magic).
 (define (make-distributor mm-func ds-in ds-out num-workers)
-  (let ((workers (make-vector mm-func num-workers))
+  (let ((workers (make-workers mm-func num-workers))
         (ds-in-reader (ds-get-reader ds-in))
         (ds-out-writer (ds-get-writer ds-out)))
+    (pp 'make-distributor)
     (conspire:make-thread
      conspire:runnable
      (lambda ()
        (let lp ()
-           (let ((ds-in-elt (ds-in-reader)))
-             (cond ((empty-ds-elt? ds-in-elt)
-                    'continue)
-                   ((ds-elt-done? ds-in-elt)
-                    (error "Implement me!"))
-                   (else
-                    (write-to-worker
-                     (choose-worker ds-in-elt workers)
-                     ds-in-elt))))
+         (let ((ds-in-elt (ds-in-reader)))
+           (cond ((empty-ds-elt? ds-in-elt)
+                  'continue)
+                 ((ds-elt-done? ds-in-elt)
+                  ;; TODO: Perhaps handle this specially?
+                  (error "Implement me!"))
+                 (else
+                  (write-to-worker
+                   (choose-worker ds-in-elt workers)
+                   ds-in-elt))))
          (vector-for-each
           (lambda (worker)
             (let ((worker-output (read-from-worker worker)))

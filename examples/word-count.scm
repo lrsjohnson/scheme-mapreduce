@@ -1,0 +1,17 @@
+(define (word-count)
+  (define documents (create-data-set))
+  (define words (create-data-set))
+  (define word-counts (create-data-set))
+  (mrs:map
+   (lambda (key document)
+     (for-each (lambda (word) (mrs:emit word 1)) document))
+   documents words)
+  (mrs:reduce
+   (lambda (word counts)
+     (mrs:emit word (apply + counts)))
+   words word-counts)
+  (mrs:feed-value-list documents '((hello world this is a document)))
+  (mrs:feed-value-list documents '((another document) (and another)))
+  (mrs:feed-value-list documents '((this document is somewhat long) (a short document)))
+  (mrs:print-streaming word-counts 'count))
+(mrs:run-computation word-count)

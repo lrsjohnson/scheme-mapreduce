@@ -1,6 +1,5 @@
 ;; TODO: Make generic? Only works on list right now
 (define (mrs:feed-data data-set ds-elt-sequence)
-  (pp 'feed-data)
   (for-each (lambda (ds-elt)
 	      (ds-add-elt data-set ds-elt))
               ds-elt-sequence))
@@ -16,11 +15,16 @@
 	       (lp (+ i 1)
 		   (cdr value-list)))))))
 
+(define (mrs:feed-key-value-list data-set key-value-list)
+  (mrs:feed-data
+   data-set
+   (map (lambda (kv)
+          (create-ds-elt (car kv) (cadr kv))) key-value-list)))
+
 (define (mrs:run-computation thunk)
   (with-time-sharing-conspiracy
    (lambda ()
      (thunk)
-     (pp 'run-c)
      (flush-input-data-sets)
      (conspire:null-job))))
 

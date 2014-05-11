@@ -8,7 +8,6 @@
         (input-pipe (make-conspire-pipe)))
     (let ((output-writer (get-pipe-writer output-pipe))
           (input-reader (get-pipe-reader input-pipe)))
-      (pp 'make-worker)
       (conspire:make-thread
        conspire:runnable
        (lambda ()
@@ -59,7 +58,6 @@
         (ds-in-reader (ds-get-reader ds-in))
         (ds-out-writer (ds-get-writer ds-out))
 	(num-workers-outstanding 0))
-    (pp 'make-distributor)
     (conspire:make-thread
      conspire:runnable
      (lambda ()
@@ -69,7 +67,6 @@
            (cond ((empty-ds-elt? ds-in-elt)
                   'continue)
                  ((ds-elt-done? ds-in-elt)
-		  (pp (list 'ds-done-elt-into-distributor ds-in-elt))
 		  (set! num-workers-outstanding num-workers)
 		  (vector-for-each (lambda (worker)
 				     (write-to-worker
@@ -77,8 +74,6 @@
 				      ds-in-elt))
 				   workers))
                  (else
-		  (pp (list 'ds-elt-into-distributor-1 ds-in-elt))
-		  (pp (list 'ds-elt-into-distributor-2 (ds-elt-value ds-in-elt)))		  		  
                   (write-to-worker
                    (choose-worker ds-in-elt workers)
                    ds-in-elt))))

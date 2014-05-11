@@ -35,13 +35,9 @@
    (cons value (hash-table/get hash-table key '()))))
 
 (define (mrs:aggregate ds-in ds-out)
-  (pp 'mrs-aggregate)
   (define (mm-func emit)
-    (pp 'mm-func-aggregator)    
     (let ((data-from-mapper (make-equal-hash-table)))
-      (pp 'made-aggregator)
       (lambda (ds-elt)
-	(pp (list 'aggregate-data ds-elt))
         (if (not (ds-elt-done? ds-elt))
             (append-data-in-hashtable
 	     data-from-mapper
@@ -50,9 +46,7 @@
             (begin (hash-table/for-each
 		    data-from-mapper
 		    (lambda (key values)
-		      (pp (list 'ht-kv key values))
-		      (emit (create-ds-elt key values))
-		      ))
+		      (emit (create-ds-elt key values))))
 		   (emit ds-elt))))))
   (make-distributor mm-func ds-in ds-out 1))
 
@@ -70,3 +64,35 @@
           (pp `(,tag done))
           (pp `(,tag ,(ds-elt-key ds-elt) ,(ds-elt-value ds-elt))))))
   (make-distributor mm-func ds-in (create-sink-data-set) 1))
+
+
+;;; Constructor-style operations
+(define (make-constructor-operation operation)
+  (define (new-op . args)
+    (define ds-out (create-data-set))
+    (apply operation (append args (list ds-out)))
+    ds-out)
+  new-op)
+
+(define mrs:c-map (make-constructor-operation mrs:map))
+(define mrs:c-filter (make-constructor-operation mrs:filter))
+(define mrs:c-aggregate (make-constructor-operation mrs:aggregate))
+(define mrs:c-reduce (make-constructor-operation mrs:reduce))
+
+#|
+(define (test1)
+  (define ds-input (create-data-set))
+  (define ds-out
+    (mrs:c-map
+     (lambda (key value)
+       (mrs:emit key (* 10 value)))
+     ds-input))
+  (mrs:print-streaming ds-out 'out)
+  (mrs:feed-value-list ds-input '(1 2 3 4)))
+(mrs:run-computation test1)
+;-> (out 0 10)
+;   (out 1 20)
+;   (out 2 30)
+;   (out 3 40)
+;   (out done)
+|#

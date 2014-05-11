@@ -64,3 +64,35 @@
           (pp `(,tag done))
           (pp `(,tag ,(ds-elt-key ds-elt) ,(ds-elt-value ds-elt))))))
   (make-distributor mm-func ds-in (create-sink-data-set) 1))
+
+
+;;; Constructor-style operations
+(define (make-constructor-operation operation)
+  (define (new-op . args)
+    (define ds-out (create-data-set))
+    (apply operation (append args (list ds-out)))
+    ds-out)
+  new-op)
+
+(define mrs:c-map (make-constructor-operation mrs:map))
+(define mrs:c-filter (make-constructor-operation mrs:filter))
+(define mrs:c-aggregate (make-constructor-operation mrs:aggregate))
+(define mrs:c-reduce (make-constructor-operation mrs:reduce))
+
+#|
+(define (test1)
+  (define ds-input (create-data-set))
+  (define ds-out
+    (mrs:c-map
+     (lambda (key value)
+       (mrs:emit key (* 10 value)))
+     ds-input))
+  (mrs:print-streaming ds-out 'out)
+  (mrs:feed-value-list ds-input '(1 2 3 4)))
+(mrs:run-computation test1)
+;-> (out 0 10)
+;   (out 1 20)
+;   (out 2 30)
+;   (out 3 40)
+;   (out done)
+|#

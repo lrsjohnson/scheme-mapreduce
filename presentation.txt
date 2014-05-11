@@ -1,70 +1,159 @@
-------------------------
+------------------------------------------------
 
-Title:
-MapReduce in Scheme
+MapReduce System (MRS)
+Lars Johnson + Tej Kanwar
 
-------------------------
+[Diagram of Network]
 
-Objectives
+------------------------------------------------
 
-tl;dr Explore scheme / 6.945 ideas in a distribtued systems context.
+Project Objectives
 
-------------------------
+* Explore applying concepts from 6.945 to systems programming
+
+* Emphasize flexibility by creating a clean abstraction
+
+* Enable operations on data sets in a simple and fundamental way
+
+------------------------------------------------
 
 What is MapReduce?
 
-------------------------
+Google -- Jeffrey Dean and Sanjay Ghemawat 
 
-Types for map/reduce functions
+------------------------------------------------
 
-------------------------
+What is MapReduce?
 
-Simple examples of map/reduce paradigm
+Map: (k, v) => (k', v')+
 
-------------------------
+    (doc-id, doc-text) => (word, 1)...
 
-[Have programming model, now discuss the actual system...]
+Reduce: (k', [list of v']) -> (k'', v'')
 
-MapReduce System:
-Master + Workers, etc.
+    (word, [1, 1, 1 …]) => (word, total)
 
-------------------------
+------------------------------------------------
 
-How to implement in Scheme?
+Basic example using (mrs:run-computation)
 
-Need multitasking + interprocess communication
+[word count scheme code example]
+[+ simple network]
 
-------------------------
+------------------------------------------------
 
-Many options:
-- conspire threads
-- actors
-- multiple processes..
+Extending MapReduce:
 
-------------------------
+Map:        (k,v) --> (k', v')
+Filter:     (k,v) --> #t/#f
+Reduce:     (k,[v]) --> (k', v')
+Aggregate:  [(k1,v1), (k2, v2), (k1, v3)] -->
+                     [(k1, [v1,v3]), (k2, [v2])]
 
-Extensions / Failure
+Common theme: Operate on data sets
+            [(k1, v1) (k2, v2) (k3, v3) ... ]
+	    
+------------------------------------------------
 
-Failure
+Key Ideas:
 
-------------------------
+1. Build a graph of data sets connected by operations
 
-Discuss interesting things we found while implementing?
+2. Feed data into data sets and it will be processed in a distributed
+manner across a worker pool
 
-- What are our abstractions that can be swapped out?
+3. Abstraction system to allow for streaming implementations
 
-- Demo?
+4. Provide programmers with a combinator-like family of reusable parts
 
-- Instrument / stats?
+------------------------------------------------
 
-- Extensions?
+Abstract Design
 
-------------------------
+* Data set: (list (k1 . v1) (k2 . v2)  (k3 . v3) ...)
 
-User-facing methods / interface:
-interpreter?
+* Operations: Full multi-map function (DS in --> DS out)
+   - Combinator-like design, for higher-level operations
+   - Special case: Aggregate
 
-------------------------
+* Workers: Single instance of multi-map function
+   - (k,v) in --> zero or more (k’, v’) out
 
-Automatic inference / conversion to map/reduce paradigm?
---- that'd be really cool to at least do something with?
+------------------------------------------------
+
+Combinators!
+
+Reduce => [Aggregate + aggregated + Map]
+
+------------------------------------------------
+
+Design Implementation
+
+User Operations:
+  (mrs:map...)
+  (mrs:reduce...)
+  (mrs:create-data-set)
+  (mrs:run-computation)
+
+Master:
+  create-distributor
+  create-data-sets
+  manage data sets...
+
+Distributor:
+  create-workers
+  distribute tasks
+  poll data-sets and workers
+
+Worker:
+  multi-map function
+  
+------------------------------------------------
+
+Design Implementation:
+
+* Data sets: multi-reader, multi-writer queues of elements
+
+* Operations: Distributor system with multi-map workers
+   - Generic operators for flexibility
+
+* User control:
+   - Build data sets and operation bindings
+   - Feed inputs to data sets
+   - (run-computation thunk)
+
+------------------------------------------------
+
+Demonstration
+
+[Scheme + 2d/3d vector demo]
+
+[Map/Reduce Network]
+
+------------------------------------------------
+
+"Done" Propagation
+
+Problem:
+* Aggregator different from other operations
+* Branched case, looped case
+
+Current solution:
+* Restrict to DAGs
+* Top-down propagation
+
+------------------------------------------------
+
+Future Work:
+
+1) Correctly handle operation loops
+    * Currently non-aggregator loops work
+
+2) Proper REPL environment for interactive data set operations
+
+3) Additional implementation of generic workers, for multi-computer
+processing
+
+4) Failure handling
+
+------------------------------------------------

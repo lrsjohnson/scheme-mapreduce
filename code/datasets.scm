@@ -44,6 +44,7 @@
             (if (= (ds-get-writer-count data-set)
                    (ds-get-done-count data-set))
                 (begin
+		  (ds-set-writer-count! data-set 0)
                   (conspire:unlock lock)
                   (ds-add-elt data-set val))))
           (begin

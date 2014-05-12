@@ -47,7 +47,9 @@
 		    data-from-mapper
 		    (lambda (key values)
 		      (emit (create-ds-elt key values))))
-		   (emit ds-elt))))))
+		   (set! data-from-mapper (make-equal-hash-table))
+		   (emit ds-elt))
+		   ))))
   (make-distributor mm-func ds-in ds-out 1))
 
 ;;; Reduce

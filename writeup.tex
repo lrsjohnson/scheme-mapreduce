@@ -257,7 +257,7 @@ end of each user-introduced stream of data. This handled simple tree-like
 graphs pretty reasonably, but ran into issues if there was ever branching and
 re-merging or cycles in the graph.
 
-For the branch-and-remerge case, the same
+\textbf{Branch and remerge:} For the branch-and-remerge case, the same
 incoming stream of data is duplicated along both branches, and the desired
 behavior is to have the data set which the data is merged into not pass on
 a ``done'' sentinel until it has gotten complete data from all branches.
@@ -272,7 +272,8 @@ after the user-defined thunk is executed in (mrs:run-computation). This
 pattern means the ``done'' sentinels flow down through all branches of
 the graph, sweeping data in front of it.
 
-This system is still not capable of handling loops in the graph. Fundamentally,
+\textbf{Cycles:} This system is still not capable of handling loops in the graph.
+Fundamentally,
 in a looped graph it is not possible for the ``done'' sentinels to sweep
 all data through the graph because the data may loop indefinitely while being
 ahead of the sentinel value. While we are excited by the idea of performing
@@ -303,7 +304,23 @@ either by collecting the data to be returned once done, or by calling the user
 callback. File Writer Data Sets write each input to a fixed file as they are received.
 
 With the Output Data Sets feature, (mrs:run-computation) appears to act like a
-single cohesive function which simply returns the output of the computation.
+single cohesive function which simply returns the output of the computation:
+
+\begin{verbatim}
+(define (test-with-output-data-set)               
+   (define ds-input (mrs:create-data-set))        
+   (define ds-output (mrs:create-output-data-set))
+   (mrs:map                                       
+    (lambda (key value)                           
+      (mrs:emit key (* 10 value)))                
+    ds-input                                      
+    ds-output)                                    
+   (mrs:feed-value-list ds-input '(1 2 3 4)))     
+(mrs:run-computation test-with-output-data-set)  
+;;; Note that this returns directly!              
+;Value -> ((1 20) (0 10) (3 40) (2 30))
+\end{verbatim}           
+
 
 \section{Future Work}
 

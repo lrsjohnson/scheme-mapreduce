@@ -1,11 +1,15 @@
 ;;; User-facing operations
 (define (mrs:create-data-set) (create-mrq-data-set))
 (define (mrs:create-sink-data-set) (create-sink-data-set))
-(define (mrs:create-file-writer-data-set) (create-file-writer-data-set))
+(define (mrs:create-file-writer-data-set filename)
+  (create-file-writer-data-set filename))
 (define (mrs:create-output-data-set) (create-output-data-set))
 
 ;;; General data-set operations
 (define *data-sets* '())
+
+(define (clear-data-sets)
+  (set! *data-sets* '()))
 
 (define (register-data-set data-set)
   (set! *data-sets* (cons data-set *data-sets*)))
@@ -175,8 +179,9 @@
     (lambda ()
       (if (file-writer-data-set-done data-set)
           (begin
-            (create-ds-elt-done)
-            (set-file-writer-data-set-done! data-set #f))
+	    (pp 'file-writer-get-done)
+            (set-file-writer-data-set-done! data-set #f)
+            (create-ds-elt-done))
           *empty-ds-elt*)))
   file-writer-data-set?)
 
@@ -238,7 +243,10 @@
 
 (defhandler ds-add-elt
   (lambda (data-set val)
-    ((output-data-set-output-callback data-set) val))
+    (let ((lock (ds-get-lock data-set)))
+      (conspire:acquire-lock lock)
+      ((output-data-set-output-callback data-set) val)
+      (conspire:unlock lock)))
   output-data-set?)
 
 (defhandler ds-get-reader

@@ -73,7 +73,9 @@
   (define (mm-func emit)
     (lambda (ds-elt)
       (if (ds-elt-done? ds-elt)
-          (emit ds-elt))))
+	  (begin
+	    (pp 'depends-on-done)
+	    (emit ds-elt)))))
   (make-distributor mm-func ds-in ds-out 1))
 
 

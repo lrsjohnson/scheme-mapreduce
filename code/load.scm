@@ -7,3 +7,5 @@
 (load "multi-reader-queue")
 (load "workers")
 (load "pipes")
+(load "main")
+(load "util")

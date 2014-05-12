@@ -46,24 +46,82 @@
 
 \section{Overview}
 
-\section{Objecives}
-
-Our project 
-
-\begin{itemize}
-
-\item Explore applying concepts from 6.945 to systems programming
-
-\item Emphasize flexibility by creating a clean abstraction
-
-\item Enable operations on data sets in a simple and fundamental way
-\end{itemize}
+We looked into the problem of building a system to work with data sets
+as a fundamental type. This problem was inspired by the Map Reduce algorithm:
+a system which performs a distributed map operation on a data set, followed
+by a reduce. We took this problem and generalized to stateful multi-maps on data
+sets. The ultimate goal was to build a system which allowed the user to
+use MIT Scheme to assemble a network of data-set operations, feed data set
+inputs at various points in the network, and extract processed output from
+the network. We successfully built a system which provided user-facing functions
+to build the graph and set inputs and outputs. The user can do this both interactively
+through a custom REPL environment and by defining a thunk to perform construction
+and input which is executed in the default REPL by our run-computation function.
 
 \section{Context}
 
+\subsection{Definitions}
+
+\textbf{Data set:} A multi-set of (key,value) pairs. Because this is a multi-set, multiple
+copies of the same key can exist.
+
+\textbf{Multi-map operation:} A function from a single (key,value) pair to zero or more
+(newkey, newvalue) pairs. As an example, both the map and filter operations are subsets
+of this abstraction.
+
+\textbf{Stateful multi-map operation:} A function from a single (key,value) pair and previous
+state to zero or more (newkey, newvalue) pairs and new state. This is a slightly broader
+abstraction than multi-map, which allowed us to cover all operations which we were interested
+in implementing.
+
+
 \subsection{MapReduce Background}
 
+The inspiration for this project came from the MapReduce algorithm developed by
+Jeffrey Dean and Sanjay Ghemawat at Google in 2004. The algorithm operates on a
+single input data set, by first performing a distributed \textbf{map} over all of
+the input (key,value) pairs, then aggregating values by keys and performing a
+distributed \textbf{reduce} over each
+of the lists of aggregated values.
+
+A canonical example of a MapReduce operation is
+word counts from a list of documents. To construct this MapReduce we define the
+map to act on (id, document) pairs and output (word, count) pairs, and we define
+the reduce to receive the aggregated word count pairs (word, [count1, count2, ...])
+and output a single (word, count) pair. The implementation of map in this example
+iterates over the words of the document and emits a (word, 1) pair for each word
+it sees. After aggregation, the reduce operation simple has to iterate through the
+given counts and sum them to output the final counts.
+
+The advantage of framing a computation on a data set as a MapReduce operation
+is that the definitions of map and reduce can completely ignore the massively
+distributed nature of the actual computation and focus on the actual operations
+being applied to the data. As demonstrated by Google, this has been quite
+successful for performing large-scale calculations that are farmed out to thousands
+of machines.
+
+
 \subsection{Extending MapReduce}
+
+While MapReduce was an interesting problem, it is a very specific method of
+operating on data sets. Our goal from this project was to extend this paradigm
+to a more general system of computation on data sets as fundamental units of
+data. We looked at the MapReduce problem and came up with a generalization
+of the operations involved to \emph{stateful multi-map} operations.
+
+Both map and reduce are actually non-stateful multi-map functions: map accepts a (key,value) pair
+and emits zero or more (newkey, newvalue) pairs in a (potentially) different
+domain; reduce accepts a (key,valuelist) pair and generally emits exactly
+one (newkey,newvalue) pair as output. The hidden third operation, the aggregation
+step, is trickier to generalize. The aggregation step requires information
+from all of its inputs at once to generate an output. This does not fit the 
+mould of a simple multi-map function, since each (key,value) pair by itself
+does not provide enough information to aggregate. We thus decided to broaden our
+generalization to stateful multi-map operations. By allowing state, map, reduce
+and aggregation could all be thought of as specific types of stateful multi-map
+functions. There are several other common data-set operations that fall into this category
+as well: filter a data set or combining two data sets, for example.
+
 
 \section{Our System}
 
@@ -76,7 +134,6 @@ Feed data into data sets and it will be processed in a distributed manner across
 Abstraction system to allow for streaming implementations
 
 Provide programmers with a combinator-like family of reusable parts
-
 
 \subsection{System Architecture}
 

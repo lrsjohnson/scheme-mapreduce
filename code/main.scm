@@ -31,6 +31,25 @@
                          output-value)))))
       (mrs:run-computation-with-callback thunk output-callback)
       output-value)))
+;;;
+
+(define (mrs:repl-trigger-computation)
+  (flush-input-data-sets)
+  (set! conspire:running? #t)
+  (start-time-sharing))
+
+(define (read) (prompt-for-command-expression "eval> "))
+
+(define (repl)
+  (let lp ((input (read)))
+    (let ((output (eval input (nearest-repl/environment))))
+      (write-line output))
+    (lp (read))))
+
+(define (mrs:repl)
+  (with-conspiracy
+   (lambda ()
+     (repl))))
 
 #|
   (define (test-print-streaming)
@@ -289,4 +308,71 @@
  ;;; in strictly increasing ordering, demonstrating that they are
  ;;; indeed being distributed across our workers.
 
+
+ ;;; And, lastly, a test case using our REPL:
+
+1 ]=> (mrs:repl)
+
+eval> (define documents (mrs:create-data-set))
+
+eval> (define words (mrs:create-data-set))
+
+eval> (define word-counts (mrs:create-data-set))
+
+eval> (mrs:map (lambda (key document)
+         (for-each (lambda (word)
+	    (mrs:emit word 1)) document))
+          documents
+          words)
+
+eval> (mrs:reduce (lambda (word counts)
+          (mrs:emit word (apply + counts))) words word-counts)
+
+eval> (mrs:feed-value-list documents '((this is a document)))
+
+eval> (mrs:feed-value-list documents '((another document) (and another)))
+
+eval> (mrs:print-streaming word-counts 'count)
+
+eval> (mrs:repl-trigger-computation)
+
+;;; The following gets printed, and the user returned to the REPL:
+   (count is 1)
+   (count this 1)
+   (count another 2)
+   (count a 1)
+   (count and 1)
+   (count document 2)
+   (count done)
+
+
+eval> (mrs:feed-value-list documents '((a short document)
+          (yet another document)))
+
+eval> (mrs:feed-value-list documents '((one last document)))
+
+eval> (mrs:repl-trigger-computation)
+
+;;; Now, with this new set of data, we have:
+   (count done)
+   (count a 1)
+   (countn yet 1)
+   (count short 1)
+   (count document 3)
+   (count last 1)
+   (count another 1)
+   (count one 1)
+
+;;; And we can even do it a third time! Each call to the
+;;; trigger-computation pushes another set of "dones" through the
+;;; computation, allowing for distinct reductions/aggregations.
+
+eval> (mrs:feed-value-list documents '((aye bee cee)))
+
+eval> (mrs:repl-trigger-computation)
+
+   (count done)
+   (count bee 1)
+   (count cee 1)
+   (count aye 1)
 |#

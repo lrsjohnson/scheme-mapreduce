@@ -1,0 +1,86 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{verbatim}
+\usepackage{indentfirst}
+\usepackage{amsthm}
+\usepackage{framed}
+\usepackage{enumitem}
+
+\usepackage{titling}
+
+%%%%%
+% Setup
+%%%%%
+\newcommand{\p}{\mathbb{P}}
+\newcommand{\e}{\mathbb{E}}
+
+% Margins
+\setlength{\textwidth}{6.5in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0in}
+
+%\setlength{\droptitle}{-0.5in}
+
+\def\squarebox#1{\hbox to #1{\hfill\vbox to #1{\vfill}}}
+\newcommand{\qedbox}
+{\vbox{\hrule\hbox{\vrule\squarebox{.667em}\vrule}\hrule}}
+%\newcommand{\qed}               {\nopagebreak\mbox{}\hfill\qedbox\smallskip}
+
+\title{MapReduce System (MRS)\\
+{\large 6.945 Final Project - Spring 2014}}
+\author{Lars Johnson (larsj@mit.edu) \\ Gurtej Kanwar (gurtej@mit.edu)}
+\date{May 12, 2014}
+
+%%%%%
+% Document
+%%%%%
+\begin{document}
+\pagestyle{myheadings}
+\maketitle
+
+\markright{MapReduce System - 6.945 Final Project - Lars Johnson}
+
+\section{Overview}
+
+\section{Objecives}
+
+Our project 
+
+\begin{itemize}
+
+\item Explore applying concepts from 6.945 to systems programming
+
+\item Emphasize flexibility by creating a clean abstraction
+
+\item Enable operations on data sets in a simple and fundamental way
+\end{itemize}
+
+\section{Context}
+
+\subsection{MapReduce Background}
+
+\subsection{Extending MapReduce}
+
+\section{Our System}
+
+\subsection{Key Ideas}
+
+Build a graph of data sets connected by operations
+
+Feed data into data sets and it will be processed in a distributed manner across a worker pool
+
+Abstraction system to allow for streaming implementations
+
+Provide programmers with a combinator-like family of reusable parts
+
+
+\end{document}
+
+
+%%  LocalWords:  Fakcharoenphol NP min Bartal Jittat Satish Rao Kunal
+%%  LocalWords:  Talwar arbi trary poly Garg Konjevod Ravi Awerbuch
+%%  LocalWords:  Azar Oct SIGACT polylogarithmic Shmoys NY

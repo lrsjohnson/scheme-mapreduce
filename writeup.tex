@@ -58,6 +58,17 @@ to build the graph and set inputs and outputs. The user can do this both interac
 through a custom REPL environment and by defining a thunk to perform construction
 and input which is executed in the default REPL by our run-computation function.
 
+\subsection{Basic Example}
+
+See Figure 1 for a basic example of using our system to perform the
+map-reduce operation of determining word frequencies over a set of documents.
+\begin{figure}[h!]
+  \includegraphics[width=\textwidth]{basic-example.png}
+  \caption{\emph{\small A basic example of using our system to
+      performe the map-reduce operation of counting the number of
+      words present in a set of documents}}
+\end{figure}
+
 \section{Context}
 
 \subsection{Definitions}
@@ -137,6 +148,13 @@ Provide programmers with a combinator-like family of reusable parts
 
 \subsection{System Architecture}
 
+\begin{figure}[h!]
+\includegraphics[width=\textwidth]{system-arch.png}
+  \caption{\emph{\small The high-level architecture of our four main
+      components (User Operations, Masters, Distributors, Workers).}}
+\label{piefig}
+\end{figure}
+
 Our MapReduce System is comprised of four main components (see diagram
 1). On the top level, a set of user operations (mrs:create-data-set)
 (mrs:map...), (mrs:reduce...), (mrs:feed-data ...) etc. enable a user
@@ -159,20 +177,58 @@ and consist of alocked queue. They are used as our demo means
 for communiczating between small groups over long ranges.
 
 Our main ``Data Set'' objects were implemented as multi-reader
-multi-writer queues of elements.
-
-Each of these data set elements were created as a 
+multi-writer queues of elements. These data sets were abstracted
+behind a generic get-reader / get-writer which allowed us to quickly
+explore a variety of useful implementations (see below).
 
 \subsection{Flexible Implementations}
 
 Many of these components were designed with a focus on flexibility to
 admit several possible different implementations.
 
-1) For the inter=process communication, our pipe structure
+1) {\bf Pipes} For the inter-process communication, we pass data between our
+distributors and workers via simple queued pipes. However, our data
+abstraction of ``send message to worker'' and ``Get message from
+worker'' could easily be reimplemented to use network / TCP
+communications to communicate with an actual distributed system of computers.
 
-2) For intra-process communication, we developed a handful of different
+2) {\bf Data sets} For intra-process communication, we developed a handful of
+different data-sets that could be used for passing information from
+one operation to another. Our data sets primarily consisted of
+limited-sized queues that transferred partially-processed data from
+to-computation. We provided three types of data-sets that users can
+construct to perform diferent purposes. All three of these are
+accessed via a friendly officer presence:
 
-\subsection{Combinator System}
+\subsubsection{Multi-Reader-Queue Data Set}
+The main class of Data Set used in the system is based on a
+multi-reader queue we built. This queue is aware of how many readers
+it has and manages pointers representing each reader's location. Data
+set elements remain in the queue until all readers have read the
+element. 
+
+\subsubsection{Output Data Set}
+The user can specify a (single) output data set in the computation
+network. This data set is special in that it passes the data it
+receies back to the original caller of (mrs:run-computation...). If
+the user specifies a callback function to run-computation, data set
+results will be passed as (k v) arguments to the callback. Otherwise,
+the output data set will enable (mrs:run-computation...) to block on
+the computation until the data set is complete and is returned to the user.
+
+\subsubsection{File Writer Data Set}
+The file-writer data set mirrors that of the output data set in that
+it provides a means of returning data set results to the user. Upon
+creation, users specify a filepath and the data sets are incrementally
+written in (k v) format to the file.
+
+\subsection{Sink - /dev/null Data Set}
+
+Finally, we implemented a simplistic ``sink'' data set that
+corresponds to the standard ``black hole'' /dev/null file used in
+Linux-based systems.
+
+\subsection{Combinatpor System}
 
 Finally, we are excited to be able to provide a combinator-like system
 for defining and building distributed systems computation graphcs. The

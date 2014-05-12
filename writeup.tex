@@ -78,9 +78,70 @@ Abstraction system to allow for streaming implementations
 Provide programmers with a combinator-like family of reusable parts
 
 
+\subsection{System Architecture}
+
+Our MapReduce System is comprised of four main components (see diagram
+1). On the top level, a set of user operations (mrs:create-data-set)
+(mrs:map...), (mrs:reduce...), (mrs:feed-data ...) etc. enable a user
+of the system to specify a dataflow network and feed data into
+it. Executing such specifications from within a
+(mrs:run-computation...) call directs a master process to allocate the
+threads and spawn a distriobutor task for each requested
+computation. These distributors coordinate execution of the function
+and will spawn a number of worker threads to perform the exeuction.
+
+\subsection{Communication Details}
+
+A key component of developing such a system is managing communications
+betweent various tasks. We used conspire:threads to provide
+multi-tasking behavior for the tasks and used both non-blocking pipes
+and data-sets to coordinate between systems. 
+
+The non-blocking pipes mirror the standard pipes used conspire:threads
+and consist of alocked queue. They are used as our demo means
+for communiczating between small groups over long ranges.
+
+Our main ``Data Set'' objects were implemented as multi-reader
+multi-writer queues of elements.
+
+Each of these data set elements were created as a 
+
+\subsection{Flexible Implementations}
+
+Many of these components were designed with a focus on flexibility to
+admit several possible different implementations.
+
+1) For the inter=process communication, our pipe structure
+
+2) For intra-process communication, we developed a handful of different
+
+\subsection{Combinator System}
+
+Finally, we are excited to be able to provide a combinator-like system
+for defining and building distributed systems computation graphcs. The
+syntax for defining a network closely resembles that from the
+propagator system in which a user allocates a number of cells
+representing data-sets, followed by specifying operations that
+transform the contents of cell data sets into another another.
+
+\section{Conceptual Challenges}
+
+In addition to the technical difficulties of exploring the
+multitasking and distributed systems paradigm in more depth, our
+project involved a handful of conceptual challenges, particularly
+in dealing with the propagation of ``done'' signals to properly handle
+reductions and aggregations on data streams.
+
+\subsection{Done Propagation}
+
+...
+
+\subsection{Detecting Completion}
+
+... Return to the user? Depends-on
+
+\section{Future Work}
+
+...??
+
 \end{document}
-
-
-%%  LocalWords:  Fakcharoenphol NP min Bartal Jittat Satish Rao Kunal
-%%  LocalWords:  Talwar arbi trary poly Garg Konjevod Ravi Awerbuch
-%%  LocalWords:  Azar Oct SIGACT polylogarithmic Shmoys NY

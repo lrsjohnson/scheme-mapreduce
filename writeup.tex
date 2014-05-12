@@ -247,14 +247,82 @@ reductions and aggregations on data streams.
 
 \subsection{Done Propagation}
 
-...
+Because aggregation operations require acting on the entire data set
+and once, we needed a mechanism in our system to alert the aggregation
+distributor once it had the entire stream. We decided to implement this
+using ``done'' sentinel values.
 
-\subsection{Detecting Completion}
+Initially we attempted to implement this by adding a ``done'' value at the
+end of each user-introduced stream of data. This handled simple tree-like
+graphs pretty reasonably, but ran into issues if there was ever branching and
+re-merging or cycles in the graph.
 
-... Return to the user? Depends-on
+For the branch-and-remerge case, the same
+incoming stream of data is duplicated along both branches, and the desired
+behavior is to have the data set which the data is merged into not pass on
+a ``done'' sentinel until it has gotten complete data from all branches.
+To achieve this, we implemented a ``done'' rule for each data set which
+counted the number of sentinel values received and only passed on a ``done''
+once it had received the number of sentinel values equal to the number of
+inputs it had. Because it is possible to create graphs where some of the
+inputs to a data set are not connected to any user-introduced data, we
+modified our sentinel introduction to instead inject ``done'' sentinels
+at each data set which had zero inputs. This method is called explicitly
+after the user-defined thunk is executed in (mrs:run-computation). This
+pattern means the ``done'' sentinels flow down through all branches of
+the graph, sweeping data in front of it.
+
+This system is still not capable of handling loops in the graph. Fundamentally,
+in a looped graph it is not possible for the ``done'' sentinels to sweep
+all data through the graph because the data may loop indefinitely while being
+ahead of the sentinel value. While we are excited by the idea of performing
+complex and interesting data-set computations with loops, we decided to
+narrow our scope to only acylic graphs for this project, because extending
+to loops will require much more framework, most likely along the lines of
+static analysis of the fully-formed graph with a more complicated dynamic
+checking system as well.
+
+\subsection{Data Output}
+
+A second major design challenge was determining how to return data to the user.
+We wanted to allow the user to write and execute a computation that completely
+abstracted away the distributed and asynchronous nature of the computation. As
+such, we decided to make (mrs:run-computation) directly return the entire
+result to the user once the computation was complete. We also imagined the use
+case of wanting to process the output as a stream, so we created (mrs:run-computation-with-callback)
+which allows the user to pass in a callback function which is called with each
+(key,value) pair outputted.
+
+Because the user is defining and arbitrary graph, the user must also be the one
+to determine which data set in the graph is the output. To allow the user to do
+this, we created two additional data set types: Output Data Sets, and File Writer Data Sets.
+The (mrs:run-computation) and (mrs:run-computation-with-callback) functions use
+a fluid-let to define a callback function which is referred to by Output Data Sets
+on each (key,value) input. These functions then handle these callbacks appropriately,
+either by collecting the data to be returned once done, or by calling the user
+callback. File Writer Data Sets write each input to a fixed file as they are received.
+
+With the Output Data Sets feature, (mrs:run-computation) appears to act like a
+single cohesive function which simply returns the output of the computation.
 
 \section{Future Work}
 
-...??
+\begin{enumerate}
+\item As mentioned above, we decided to restrict the scope of this project to just
+  acyclic computation graphs. We would love to see the problem of aggregation
+  solved for general graphs. Looped graphs provide an oppportunity to create
+  very interesting behavior on data sets even on very simple graphs.
+\item We designed the worker system using generic operators with the intent of
+  allowing extendability to multi-processed, and ideally physically distributed,
+  computation. Adding support for this would make the system much more practical
+  for actual usage, since large worker farms could be applied to processing of
+  large data sets.
+\item We did not address the problem of workers or multi-map operations failing
+  with this project. In reality, larger worker systems and more complicated
+  computations make it more likely that either workers will fail, or the computations
+  being performed will cause errors. This system could be extended in the future
+  to properly handle failure, either by retrying the computation or logging
+  appropriately.
+\end{enumerate}
 
 \end{document}

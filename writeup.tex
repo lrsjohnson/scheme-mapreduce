@@ -42,7 +42,8 @@
 \pagestyle{myheadings}
 \maketitle
 
-\markright{MapReduce System - 6.945 Final Project - Lars Johnson}
+\markright{MapReduce System - 6.945 Final Project - Lars Johnson +
+  Gurtej Kanwar}
 
 \section{Overview}
 
@@ -65,7 +66,7 @@ map-reduce operation of determining word frequencies over a set of documents.
 \begin{figure}[h!]
   \includegraphics[width=\textwidth]{basic-example.png}
   \caption{\emph{\small A basic example of using our system to
-      performe the map-reduce operation of counting the number of
+      perform the map-reduce operation of counting the number of
       words present in a set of documents}}
 \end{figure}
 
@@ -169,20 +170,20 @@ Our MapReduce System is comprised of four main components (See diagram
 of the system to specify a dataflow network and feed data into
 it. Executing such specifications from within a
 (mrs:run-computation) call directs a master process to allocate the
-threads and spawn a distriobutor task for each requested
+threads and spawn a distributor task for each requested
 computation. These distributors coordinate execution of the function
-and will spawn a number of worker threads to perform the exeuction.
+and will spawn a number of worker threads to perform the execution.
 
 \subsection{Communication Details}
 
 A key component of developing such a system is managing communications
-betweent various tasks. We used conspire:threads to provide
+between various tasks. We used conspire:threads to provide
 multi-tasking behavior for the tasks and used both non-blocking pipes
 and data-sets to coordinate between systems. 
 
 The non-blocking pipes mirror the standard pipes used conspire:threads
-and consist of alocked queue. They are used as our demo means
-for communiczating between small groups over long ranges.
+and consist of an interlocked queue. They are used as our demo means
+for communicating between small groups over long ranges.
 
 Our main ``Data Set'' objects were implemented as multi-reader
 multi-writer queues of elements. These data sets were abstracted
@@ -209,7 +210,7 @@ different data-sets that could be used for passing information from
 one operation to another. Our data sets primarily consisted of
 limited-sized queues that transferred partially-processed data from
 to-computation. We provided three types of data-sets that users can
-construct to perform diferent purposes. All three of these are
+construct to perform different purposes. All three of these are
 accessed via a friendly officer presence:
 
 \begin{description}
@@ -224,7 +225,7 @@ element.
 \item[Output Data Set] \hfill \\
 The user can specify a (single) output data set in the computation
 network. This data set is special in that it passes the data it
-receies back to the original caller of (mrs:run-computation...). If
+receives back to the original caller of (mrs:run-computation...). If
 the user specifies a callback function to run-computation, data set
 results will be passed as (k v) arguments to the callback. Otherwise,
 the output data set will enable (mrs:run-computation...) to block on
@@ -244,7 +245,7 @@ Linux-based systems.
 \subsection{Combinator System}
 
 Finally, we are excited to be able to provide a combinator-like system
-for defining and building distributed systems computation graphcs. The
+for defining and building distributed systems computation graphs. The
 syntax for defining a network closely resembles that from the
 propagator system in which a user allocates a number of cells
 representing data-sets, followed by specifying operations that
@@ -291,7 +292,7 @@ in a looped graph it is not possible for the ``done'' sentinels to sweep
 all data through the graph because the data may loop indefinitely while being
 ahead of the sentinel value. While we are excited by the idea of performing
 complex and interesting data-set computations with loops, we decided to
-narrow our scope to only acylic graphs for this project, because extending
+narrow our scope to only acyclic graphs for this project, because extending
 to loops will require much more framework, most likely along the lines of
 static analysis of the fully-formed graph with a more complicated dynamic
 checking system as well.
@@ -340,10 +341,10 @@ single cohesive function which simply returns the output of the computation:
 \begin{enumerate}
 \item As mentioned above, we decided to restrict the scope of this project to just
   acyclic computation graphs. We would love to see the problem of aggregation
-  solved for general graphs. Looped graphs provide an oppportunity to create
+  solved for general graphs. Looped graphs provide an opportunity to create
   very interesting behavior on data sets even on very simple graphs.
 \item We designed the worker system using generic operators with the intent of
-  allowing extendability to multi-processed, and ideally physically distributed,
+  allowing extendibility to multi-processed, and ideally physically distributed,
   computation. Adding support for this would make the system much more practical
   for actual usage, since large worker farms could be applied to processing of
   large data sets.
@@ -356,3 +357,7 @@ single cohesive function which simply returns the output of the computation:
 \end{enumerate}
 
 \end{document}
+
+%%  LocalWords:  MapReduce stateful REPL newkey newvalue Sanjay mrs
+%%  LocalWords:  Ghemawat valuelist dataflow callback filepath
+%%  LocalWords:  propagator remerge outputted callbacks

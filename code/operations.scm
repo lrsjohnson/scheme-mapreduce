@@ -65,6 +65,14 @@
           (pp `(,tag ,(ds-elt-key ds-elt) ,(ds-elt-value ds-elt))))))
   (make-distributor mm-func ds-in (create-sink-data-set) 1))
 
+;;; ds-out only receives a done once ds-in is done
+(define (mrs:depends-on ds-in ds-out)
+  (define (mm-func emit)
+    (lambda (ds-elt)
+      (if (ds-elt-done? ds-elt)
+          (emit ds-elt))))
+  (make-distributor mm-func ds-in ds-out 1))
+
 
 ;;; Constructor-style operations
 (define (make-constructor-operation operation)
@@ -95,4 +103,20 @@
 ;   (out 2 30)
 ;   (out 3 40)
 ;   (out done)
+
+(define (test-depends-on)
+  (define ds-input (create-data-set))
+  (define ds-sink (create-data-set))
+  (define ds-done-check (create-data-set))
+  (mrs:map (lambda (k v)
+             (pp (list k v))) ds-input ds-sink)
+  (mrs:depends-on ds-sink ds-done-check)
+  (mrs:feed-value-list ds-input '(1 2 3 4))
+  (mrs:print-streaming ds-done-check 'out))
+(mrs:run-computation test-depends-on)
+;-> (3 4)
+;   (0 1)
+;   (1 2)
+;   (2 3)
+;   (out done) ;; Happens afterwards
 |#

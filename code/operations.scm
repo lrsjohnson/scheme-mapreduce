@@ -52,7 +52,7 @@
 
 ;;; Reduce
 (define (mrs:reduce reduce-func ds-in ds-out)
-  (define ds-intermediate (create-data-set))
+  (define ds-intermediate (mrs:create-data-set))
   (mrs:aggregate ds-in ds-intermediate)
   (mrs:map reduce-func ds-intermediate ds-out))
       
@@ -63,7 +63,7 @@
       (if (ds-elt-done? ds-elt)
           (pp `(,tag done))
           (pp `(,tag ,(ds-elt-key ds-elt) ,(ds-elt-value ds-elt))))))
-  (make-distributor mm-func ds-in (create-sink-data-set) 1))
+  (make-distributor mm-func ds-in (mrs:create-sink-data-set) 1))
 
 ;;; ds-out only receives a done once ds-in is done
 ;;; Example use case: User specifies return output data

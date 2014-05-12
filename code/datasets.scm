@@ -1,6 +1,8 @@
 ;;; User-facing operations
 (define (mrs:create-data-set) (create-mrq-data-set))
+(define (mrs:create-sink-data-set) (create-sink-data-set))
 (define (mrs:create-file-writer-data-set) (create-file-writer-data-set))
+(define (mrs:create-output-data-set) (create-output-data-set))
 
 ;;; General data-set operations
 (define *data-sets* '())
@@ -76,7 +78,7 @@
 
 (defhandler ds-add-elt
   (lambda (mrq-data-set val)
-    (let ((lock (mrq-data-set-lock mrq-data-set)))
+    (let ((lock (ds-get-lock mrq-data-set)))
       (conspire:acquire-lock lock)
       (mr-queue-add-elt (mrq-data-set-queue mrq-data-set) val)
       (conspire:unlock lock)))
@@ -227,6 +229,57 @@
 |#
 
 
+;;; Output data set
+(define-structure output-data-set output-callback lock done-count writer-count)
+(define (create-output-data-set)
+  (make-output-data-set
+   *output-callback*
+   (conspire:make-lock) 0 0))
+
+(defhandler ds-add-elt
+  (lambda (data-set val)
+    ((output-data-set-output-callback data-set) val))
+  output-data-set?)
+
+(defhandler ds-get-reader
+  (lambda (data-set)
+    (error "Cannot read from output data set"))
+  output-data-set?)
+
+(defhandler ds-get-writer-count
+  output-data-set-writer-count
+  output-data-set?)
+
+(defhandler ds-set-writer-count!
+  set-output-data-set-writer-count!
+  output-data-set?)
+
+(defhandler ds-get-done-count
+  output-data-set-done-count
+  output-data-set?)
+
+(defhandler ds-set-done-count!
+  set-output-data-set-done-count!
+  output-data-set?)
+
+(defhandler ds-get-lock
+  output-data-set-lock
+  output-data-set?)
+
+#|
+ (define *output-callback* #f)
+ (fluid-let ((*output-callback* pp))
+   (define (test-output)
+     (define ds (create-output-data-set))
+     (define writer (ds-get-writer ds))
+     (writer 1)
+     (writer 2))
+   (with-time-sharing-conspiracy test-output))
+ ;-> 1
+ ;   2
+|#
+
+
 ;;; Sink data set
 (define *sink-data-set* (list 'sink-data-set))
 (define (sink-data-set? data-set) (eq? data-set *sink-data-set*))
@@ -236,7 +289,7 @@
 
 (defhandler ds-get-reader
   (lambda (sink-data-set)
-    (lambda () (error "Cannot read from sink data set")))
+    (error "Cannot read from sink data set"))
   sink-data-set?)
 
 (defhandler ds-get-writer
@@ -253,6 +306,32 @@
   (lambda (data-set writer-count)
     (error "Writer count does not apply to /dev/null"))
   sink-data-set?)
+
+(defhandler ds-get-done-count
+  (lambda (data-set)
+    (error "Done count does not apply to /dev/null"))
+  sink-data-set?)
+
+(defhandler ds-set-done-count!
+  (lambda (data-set count)
+    (error "Done count does not apply to /dev/null"))
+  sink-data-set?)
+
+(defhandler ds-get-lock
+  (lambda (data-set)
+    (error "Lock does not apply to /dev/null"))
+  sink-data-set?)
+
+#|
+ (define (test-sink)
+   (define ds (create-sink-data-set))
+   (define writer (ds-get-writer ds))
+   (writer 1)
+   (writer 2))
+ (with-time-sharing-conspiracy test-sink)
+ ;; Should do nothing with writes (just returns 'pass)
+ ;-> pass
+|#
 
 
 ;;; Data-set elements

@@ -66,6 +66,9 @@
   (make-distributor mm-func ds-in (create-sink-data-set) 1))
 
 ;;; ds-out only receives a done once ds-in is done
+;;; Example use case: User specifies return output data
+;;; set depends on file output data sets, so entire file is
+;;; written out before returning to the user
 (define (mrs:depends-on ds-in ds-out)
   (define (mm-func emit)
     (lambda (ds-elt)

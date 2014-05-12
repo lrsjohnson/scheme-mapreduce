@@ -1,3 +1,8 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Contains the public facing operations for perfoming computations
+;;; on data sets:
+
+
 ;;; Kind of gross, but we need to define this somewhere for the fluid-let
 ;;; operations below
 (define (mrs:emit key value) (error "mrs:emit undefined for this operation"))

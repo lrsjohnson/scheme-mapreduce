@@ -1,3 +1,6 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;  Operations for users to feed data into the system.
+
 (define (mrs:feed-data data-set ds-elt-sequence)
   (for-each (lambda (ds-elt)
 	      (ds-add-elt data-set ds-elt))
@@ -20,3 +23,5 @@
    (map (lambda (kv)
           (create-ds-elt (car kv) (cadr kv))) key-value-list)))
  
+
+;;; Tested in main.scm

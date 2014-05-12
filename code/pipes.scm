@@ -1,3 +1,7 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Generic operator interface for pipes and a queue/conspiracy-based
+;;; implementation
+
 ;; Non-blocking
 (define get-pipe-reader
   (make-generic-operator 1 'get-pipe-reader))

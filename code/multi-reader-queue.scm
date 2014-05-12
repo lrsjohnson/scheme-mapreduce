@@ -1,3 +1,7 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;  Fondly known as Mr. Queue, contains implementation of our
+;;;  mutlti-reader, multi-writer queue which is used by data sets.
+
 (define-structure mr-queue element-list end-ptr deleted-count reader-infos)
 (define-structure reader-info ptr index)
 

@@ -1,3 +1,11 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Generic operator interface for datasets + implementations for:
+;;    - mrq-data-set
+;;    - sink-data-set
+;;    - file-writer-data-set              
+;;    - output-data-set
+
+
 ;;; User-facing operations
 (define (mrs:create-data-set) (create-mrq-data-set))
 (define (mrs:create-sink-data-set) (create-sink-data-set))
